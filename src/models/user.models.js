@@ -71,9 +71,7 @@ userSchema.methods.generateAccessToken=function(){
         //short lived access token
         jwt.sign({ 
             _id:this._id,
-            email:this.email,
-            username:this.username,
-            fullname:this.fullname
+            
     
          }, process.env.REFRESH_TOKEN_SECKRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY });
 }
