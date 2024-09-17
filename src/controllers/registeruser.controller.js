@@ -102,4 +102,39 @@ const loginuser=asyncHandler(async(req,res)=>{
     "user logged in successfully"
   ))
 })
+const refreshAccessToken=asyncHandler(async(req,res)=>{
+      const incomingrefreshtoken=req.cookie.refreshtoken || req.body.refreshtoken
+      if(!incomingrefreshtoken){
+        throw new ApiError(401,"unothorized user")
+      }
+      try {
+        const decodeduser=jwt.verify(
+          incomingrefreshtoken,
+          process.env.REFRESH_TOKEN_SECKRET
+        )
+        const user=await User.findById(decodeduser?._id)
+        if(!user){
+          throw new ApiError(401,"Invalid refresh token")
+        }
+        if(incomingrefreshtoken!==user?.refreshtoken){
+          throw new ApiError(401,"Invalid refresh token")
+        }
+        const options={
+          httpOnly:true,
+          secure:process.env.NODE_ENV === "production"
+        }
+        const {Accesstoken,refreshtoken:Newrefreshtoken}=await GenerateAccessandRefreshtokens(user?._id)
+        
+        return res
+        .status(200)
+        .cookie("Accesstoken",Accesstoken,options)
+        .cookie("refreshtoken",Newrefreshtoken,options)
+        .json(
+          new ApiResponse(200,{Accesstoken,refreshtoken:Newrefreshtoken},"Access token refreshed successfully")
+        )
+      } catch (error) {
+        throw new ApiError(500,"Something went wrogn while refreshing access token")
+      }
+
+})
 export {registeruser}
