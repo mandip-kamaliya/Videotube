@@ -137,4 +137,31 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
       }
 
 })
-export {registeruser}
+const logout=asyncHandler(async(req,res)=>{
+  await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $set:{
+          refreshtoken:undefined
+        }
+      },
+        {
+          new:true
+        }    
+  )
+  const options={
+    httpOnly:true,
+    secure:process.env.NODE_ENV === "production"
+  }
+  return res.status(200)
+  .clearcookie("Accesstoken",Accesstoken,options)
+  .clearcookie("refreshtoken",refreshtoken,options)
+  .json( new ApiResponse(200,"user logout successfully!"))
+})
+export {
+  registeruser,
+  loginuser,
+  logout,
+  GenerateAccessandRefreshtokens,
+  refreshAccessToken
+}
